@@ -301,6 +301,11 @@ int MapIso::load(string filename) {
 				}
 				else if (infile.key == "direction") {
 					new_enemy.direction = atoi(infile.val.c_str());
+				} else if (infile.key == "patrol") {
+					val = infile.val + ','; // we need a comma for eatFirstInt to work properly
+					while(val.size() > 0) {
+						new_enemy.patrol.push(eatFirstInt(val,','));
+					}
 				}
 			}
 			else if (infile.section == "enemygroup") {
