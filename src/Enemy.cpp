@@ -31,6 +31,7 @@ Enemy::Enemy(PowerManager *_powers, MapIso *_map) : Entity(_map) {
 	stats.last_seen.x = -1;
 	stats.last_seen.y = -1;
 	stats.in_combat = false;
+	stats.in_patrol = false;
 	
 	haz = NULL;
 	
@@ -168,6 +169,7 @@ void Enemy::logic() {
 	// otherwise, it will head towards where it last saw the hero
 	if (los && dist < stats.threat_range) {
 		stats.in_combat = true;
+		stats.in_patrol = false;
 		stats.last_seen.x = stats.hero_pos.x;
 		stats.last_seen.y = stats.hero_pos.y;
 		powers->activate(stats.power_index[BEACON], &stats, stats.pos); //emit beacon
@@ -290,14 +292,33 @@ void Enemy::logic() {
 					}
 				}
 			}
+			// resume patrol if any
+			// TODO wait
+			else if ( patrol.size() > 0 ) {
+				stats.in_patrol = true;
+				newState(ENEMY_MOVE);
+			}
 			
 			break;
 		
 		case ENEMY_MOVE:
 		
 			setAnimation("run");
+
+			if ( !stats.in_combat && stats.in_patrol ) {
+				pursue_pos = getPatrolWaypoint();
+				// if no line of movement to target, use pathfinder
+				if ( !map->collider.line_of_movement(stats.pos.x, stats.pos.y, pursue_pos.x, pursue_pos.y)) {
+					vector<Point> path;
+					// if a path is returned, target first waypoint
+					if ( map->collider.compute_path(stats.pos,pursue_pos,path) ) {
+						pursue_pos = path.back();
+					}
+				}
+				stats.direction = face(pursue_pos.x, pursue_pos.y);
+			}
 	
-			if (stats.in_combat) {
+			if (stats.in_combat && !stats.in_patrol ) {
 
 				if (++stats.dir_ticks > stats.dir_favor && stats.patrol_ticks == 0) {
 					// if no line of movement to target, use pathfinder
@@ -311,7 +332,7 @@ void Enemy::logic() {
 					stats.direction = face(pursue_pos.x, pursue_pos.y);
 					stats.dir_ticks = 0;
 				}
-				
+
 				if (dist > stats.melee_range && stats.cooldown_ticks == 0) {
 				
 					// check ranged physical!
@@ -345,6 +366,17 @@ void Enemy::logic() {
 				}
 				else {
 					newState(ENEMY_STANCE);
+				}
+			}
+			else if (!stats.in_combat && stats.in_patrol) {
+				if (!move()) {
+					// hit an obstacle.  Try the next best angle
+					prev_direction = stats.direction;
+					stats.direction = faceNextBest(pursue_pos.x, pursue_pos.y);
+					if (!move()) {
+						newState(ENEMY_STANCE);
+						stats.direction = prev_direction;
+					}
 				}
 			}
 			else {
@@ -511,6 +543,7 @@ bool Enemy::takeHit(Hazard h) {
 
 		if (!stats.in_combat) {
 			stats.in_combat = true;
+			stats.in_patrol = false;
 			stats.last_seen.x = stats.hero_pos.x;
 			stats.last_seen.y = stats.hero_pos.y;
 			powers->activate(stats.power_index[BEACON], &stats, stats.pos); //emit beacon
@@ -650,6 +683,29 @@ void Enemy::doRewards() {
 		map->camp->setStatus(stats.defeat_status);
 	}
 
+}
+
+void Enemy::setPatrol(std::vector<int> p, int index) {
+	patrol = p;
+	patrol_index = index;
+}
+
+Point Enemy::getPatrolWaypoint() {
+	Point waypoint;
+	waypoint.x = patrol[patrol_index];
+	waypoint.y = patrol[patrol_index+1];
+	waypoint = collision_to_map(waypoint);
+	// do we have already move past this waypoint ?
+	Point direction_waypoint = waypoint-stats.pos;
+	Point direction_enemy = round(calcVector(stats.pos, stats.direction, 2))-stats.pos;
+	if(dot_product(direction_waypoint,direction_enemy)<=0) {
+		// we moved past it
+		patrol_index =(patrol_index+3)%patrol.size();
+		waypoint.x = patrol[patrol_index];
+		waypoint.y = patrol[patrol_index+1];
+		waypoint = collision_to_map(waypoint);
+	}
+	return waypoint;
 }
 
 /**

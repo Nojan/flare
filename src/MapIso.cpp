@@ -303,8 +303,9 @@ int MapIso::load(string filename) {
 					new_enemy.direction = atoi(infile.val.c_str());
 				} else if (infile.key == "patrol") {
 					val = infile.val + ','; // we need a comma for eatFirstInt to work properly
+					new_enemy.patrol.reserve(std::count(val.begin(),val.end(),','));
 					while(val.size() > 0) {
-						new_enemy.patrol.push(eatFirstInt(val,','));
+						new_enemy.patrol.push_back(eatFirstInt(val,','));
 					}
 				}
 			}

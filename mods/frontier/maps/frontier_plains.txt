@@ -1042,3 +1042,28 @@ type=zombie_brute
 location=20,158,1,1
 direction=1
 
+# dancing goblins
+[enemy]
+type=goblin
+location=33,74,1,1
+direction=1
+patrol=33,74,0,36,74,0
+
+[enemy]
+type=goblin
+location=33,76,1,1
+direction=1
+patrol=33,76,0,36,76,0
+
+[enemy]
+type=goblin
+location=33,78,1,1
+direction=1
+patrol=33,78,0,36,78,0
+
+[enemy]
+type=goblin
+location=33,80,1,1
+direction=1
+patrol=33,80,0,36,80,0
+

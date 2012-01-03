@@ -134,6 +134,10 @@ void EnemyManager::handleNewMap () {
 		else {
 			cout << "Warning: no animation file specified for entity: " << me.type << endl;
 		}
+		// load the patrol if specified
+		if (me.patrol.size() > 0) {
+			enemies[enemy_count]->setPatrol(me.patrol);
+		}
 		loadGraphics(enemies[enemy_count]->stats.gfx_prefix);
 		loadSounds(enemies[enemy_count]->stats.sfx_prefix);
 		enemy_count++;

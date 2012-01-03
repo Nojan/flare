@@ -46,7 +46,7 @@ struct Map_Enemy {
 	std::string type;
 	Point pos;
 	int direction;
-	std::queue<int> patrol;
+	std::vector<int> patrol;
 };
 
 struct Map_Group {

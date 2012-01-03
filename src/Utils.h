@@ -34,6 +34,13 @@ using namespace std;
 
 struct Point {
 	int x,y;
+
+	Point operator -(const Point& p) const {
+		Point res;
+		res.x = x - p.x;
+		res.y = y - p.y;
+		return res;
+	}
 };
 
 struct FPoint {
@@ -71,6 +78,8 @@ Point map_to_screen(int x, int y, int camx, int camy);
 Point map_to_collision(Point p);
 Point collision_to_map(Point p);
 FPoint calcVector(Point pos, int direction, int dist);
+// assuming this and p are vector, return dot product
+int dot_product(const Point& p1, const Point& p2);
 double calcDist(Point p1, Point p2);
 bool isWithin(Point center, int radius, Point target);
 bool isWithin(SDL_Rect r, Point target);

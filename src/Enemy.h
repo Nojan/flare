@@ -57,6 +57,8 @@ const int ENEMY_CRITDEAD = 10;
 class Enemy : public Entity {
 protected:
 	PowerManager *powers;
+	std::vector<int> patrol;
+	int patrol_index;
 
 public:
 	Enemy(PowerManager *_powers, MapIso *_map);
@@ -68,6 +70,8 @@ public:
 	int getDistance(Point dest);
 	bool takeHit(Hazard h);
 	void doRewards();
+	void setPatrol(std::vector<int> p, int index=0);
+	Point getPatrolWaypoint();
 
 	virtual Renderable getRender();
 	

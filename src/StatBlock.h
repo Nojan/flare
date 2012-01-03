@@ -182,6 +182,7 @@ public:
 	int dir_ticks;
 	int patrol_ticks;
 	bool in_combat;
+	bool in_patrol;
 	int cooldown_ticks;
 	int cooldown; // min. # of frames between abilities
 	
